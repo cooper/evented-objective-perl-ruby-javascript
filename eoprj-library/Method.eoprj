@@ -1,0 +1,70 @@
+# Copyright (c) 2012, Mitchell Cooper
+# Class: the base class of all classes.
+package Method 1.0
+
+# handlers are Objects with properties:
+#     name: the name of the handler
+#     code: the code (Function) of the handler
+
+# creates a new class.
+method new($name: String) +
+
+    # create an object and make it also a method.
+    $method = @this.SUPER.new.callWithArguments(@arguments)
+    $method.ISA.unshift($method)
+    
+    # set properties from the constructor arguments.
+    $method.name = $name
+    
+    # set other initial properties.
+    $person.HANDLERS = 
+    
+    # return the newly created method.
+    @return.method = $method    
+    
+-
+
+
+# add a method handler. handler name defaults to "default"
+# HANDLERS = %(
+#     0 => @(handlers),
+#     1 => @(other handlers)
+# )
+method addHandler($priority: Number, $name: String = "default", $code: Function)
+
+    # if this priority doesn't exist, create it.
+    *@this.HANDLERS{$priority} ||= @()
+    
+    # TODO: make sure there is no handler with this name already.
+    
+    # create the handler object.
+    $handler = $(
+        name: $name,
+        code: $code
+    )
+    
+    # add the handler.
+    *@this.HANDLERS{$priority}.push($handler)
+
+    @return.success = true
+-
+
+# removes a handler with the specified name. default name is "core"
+method deleteHandler($name: String = "default") {
+
+    # remove handlers whose 'name' property equals $name.
+    *@this.HANDLERS.remove(do: func($index: Number, $value: Object) {
+        
+        # if the name property is same as $name, return true
+        if ($name eq $value.name) {
+            @return.remove = true
+            return
+        }
+        
+        # otherwise, don't remove.
+        @return.remove = false
+        
+    })
+
+}
+

@@ -1,0 +1,45 @@
+# Copyright (c) 2012, Mitchell Cooper
+# Class: the base class of all classes.
+package Class 1.0 : Object
+
+# creates a new class.
+method new($name: String, $version: Number) +
+
+    # create an object and extend it to Class.
+    $class = @this.SUPER.new.callWithArguments(@arguments)
+    $class.ISA.unshift($Class)
+    
+    # by default, all classes have 'new' in their NOISA.
+    $class.NOISA.push('new')
+    
+    # return the newly created class.
+    @return.class = $class
+    
+-
+
+# adds a getter to a class.
+method addGetter($name: String, $function: Function)
+    *@this.GETTERS.setPair(key: $name, value: $function)
+    @return.success = true
+-
+
+# adds a setter to a class.
+method addSetter($name: String, $function: Function)
+    *@this.SETTERS.setPair(key: $name, value: $function)
+    @return.success = true
+-
+
+# adds a property to the list of properties to be ignored by the ISA inheritance system.
+# in other words, makes a property private to this specific object.
+method noInherit($name: String)
+    *@this.NOISA.push($name)
+    @return.success = true
+-
+
+# adds a property to the list of properties that are only accessible through the ISA inheritance system.
+# in other words, make it so you cannot access the property except through an object that inherits from
+# this object. however, this can be overridden with the *$obj.property syntax.
+method inheritOnly($name: String)
+    *@this.ISAONLY.push($name)
+    @return.success = true
+-

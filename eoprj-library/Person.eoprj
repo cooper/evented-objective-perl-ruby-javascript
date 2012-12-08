@@ -1,0 +1,114 @@
+# Copyright (c) 2012, Mitchell Cooper.
+# NOTE: fetching properties should always use getters until it can't anymore.
+
+# plain old person with an age. inheritance from Class is implied if no other inheritance is specified.
+package Person 1.0
+    
+# creates a new Person.
+# note: constructors tend to set properties like 'person', but really, 'object' is still the same object.
++ method new($name: String, $age: Number) {
+
+    # create a new person.
+    [0: createPerson]
+    $person = @this.SUPER.new.callWithArguments(@arguments)
+    $person.ISA.unshift($Person)
+    
+    # set properties from the constructor arguments.
+    [1: setProperties]
+    $person.age  = $age
+    $person.name = $name
+    
+    # return the newly created person.
+    [2: returnPerson]
+    @return.person = $person
+    
+}
+
+# prints the age of the person.
+method printAge {
+    print(@this.name + ' is ' + @this.age + 'years old')
+}
+
+end package
+
+# person who lies and says he is 10 years younger than he is
+package LyingPerson 1.0 : Person
+    getter age -> getAge
+    setter age -> setAge
+    
+method new($age: Number)
+
+    # first, call new of the base class (Person.) SUPER is the first index of ISA.
+    $personReturn = @this.SUPER.new.callWithArguments(@arguments)
+    $person = $personReturn.person
+    
+    # make the person a liar, while keeping it a person as well.
+    $person.ISA.unshift($LyingPerson)
+    
+    # return the same things as Person's new() did, plus the new .person.
+    @return = $personReturn
+    @return.person = $person
+    
+-
+
+# $value is always what it's called. this is entirely unnecessary, though.
+method setAge($value: Number)
+    *@this.age = $value
+-
+
+# return property is always result
+method getAge()
+    @return.result = *@this.age - 10
+    
+
+    
+# example use of both classes
+
+# create some people.
+$bob = $Person.new(age: 17).person
+$jim = $LyingPerson.new(age: 34).person
+
+# print their ages.
+$bob.printAge()   # prints 17
+$jim.printAge()   # prints 24
+
+# explanation:
+#
+# first of all, let's look at the ISA of each of these objects
+# $Person:      @($Class, $Object)
+# $LyingPerson: @($Person, $Class, $Object)
+# $bob:         @($Person, $Object)
+# $jim:         @($LyingPerson, $Person, $Object)
+#
+# $jim's age is 24 rather than 34 because:
+#     1) Person's printAge() uses @this, which takes ISA into account.
+#     2) $jim's ISA index 0 is LyingPerson
+#     3) LyingPerson has a getter that overrides the actual value of the age property.
+# fetching $jim.age calls LyingPerson's getter getAge() because:
+#     1) LyingPerson is index 0 of $jim's ISA property.
+#     2) LyingPerson's GETTERS hash has age:getAge.
+# just for reference, $jim.age is same as $jim.getAge().result.
+#
+# $bob.age is simply the literal value of the age property of the object because it has no getter.
+#
+
+end package
+
+### Scenario: we want to add functionality to Person's constructor that adds a 'sex' argument.
+
+# add a new method handler.
+$Person.new (1) -> func($sex: String)
+    
+    # set the property value.
+    @return.person.sex = $sex
+    
+-
+
+# because this method handler's priority is 1, it is called after the constructor.
+# because it is called afterwards, we can be assured that @return.person has already
+# been set. this way, we can extend it by adding the sex property.
+#
+
+# typically, you should use priorities that are more separated so there is room for more
+# in between. although decimal priorities are valid, they can be rather ugly and confusing.
+

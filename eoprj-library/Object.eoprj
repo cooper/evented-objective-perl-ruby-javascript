@@ -1,0 +1,35 @@
+# Copyright (c) 2012, Mitchell Cooper
+# Object: the base class of mostly all objects.
+# typically, $Object is the last value of ISA.
+package Object 1.0 : # no inheritance (or must we inherit from Class?)
+    getter SUPER -> getSuper
+    setter SUPER -> setSuper
+    
+# creates a new class.
+method new() +
+
+    # create a literal object type with initial special properties.
+    $object = {
+        ISA:     $Array.new().array,
+        NOISA:   $Array.new().array,
+        GETTERS: $Hash.new().hash,
+        SETTERS: $Hash.new().hash
+    }
+    
+    # make the new object an Object instance.
+    $object.ISA.unshift($Object)
+
+    # return the new object.
+    @return.object = $object
+    
+-
+
+# getter for SUPER property.
+method getSuper()
+    @return.result = @this.ISA[0]
+-
+
+# dummy SUPER setter - super is not settable.
+method setSuper($value: Object)
+    # do nothing.
+-
