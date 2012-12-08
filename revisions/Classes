@@ -1,0 +1,66 @@
+EOPRJ Class Revision
+
+This file describes the changes made to the EOPRJ class system on December 2, 2012. This file describes the way classes work, not the actual syntax of classes. For syntax, see "EOPRJ Package Syntax Revision."
+
+Any object implements the properties of all the objects in its ISA.
+Classes, thus, are simply objects with their instance methods as properties.
+All instances of a class simply have the class object itself in their ISA, this way any property that is not found in the instance will be forwarded to the class object.
+
+New class properties
+
+After these changes, I have created two new arrays that must be present in all classes.
+instanceMethods - a list of instance method property names
+classMethods - a list of class method property names
+
+Issue 1: all instances inherit the methods of the Class class
+
+As of now, all classes inherit from the Class class. We don't really want instances to inherit the properties of Class.
+I fixed this issue by adding ISAIGNORE, a list of objects to ignore when searching ISA.
+$Class should be in the ISAIGNORE of all instances of classes that should not inherit methods of the Class class.
+
+Issue 2: I can't decide whether or not to inherit ISAs.
+
+Should we or shouldn't search inherited ISA's?
+In other words, if an object's ISA contains a second object, should we search the ISA of that second object?
+The answer is yes, ISAs should be inherited but with limitations.
+However, since all objects inherit from Object, no two exactly equal (same identifier) objects will be searched multiple times.
+So, say you had ISA = @($MyClass, $OtherClass, $Object)
+Since MyClass inherits from Object, there's no need to search Object again if it's not found once.
+If we didn't do this, Object would be searched three times: once from $MyClass's ISA, once from $OtherClass's ISA, and once from this ISA.
+
+Issue 3: We don't want instance methods to be accessible through the class itself
+
+Typically, we don't want instance methods to be accessible from a class. Say the instances of a class implement the someMethod method. We don't want $SomeClass.someMethod() to work on the class itself.
+I solved this issue by adding ISAONLY, an array of properties that should be accessible ONLY through ISA inheritance. Properties in ISAONLY are accessible on the object itself only when the *$obj.property syntax is used.
+Classes will have ISAONLY = @($SomeClass.instanceMethods)
+See top for information on the new instanceMethods and classMethods arrays.
+See issue 5 for information about putting arrays in ISAONLY.
+
+Now, say you have a $ChildClass which is a child class of $SomeClass.
+You will now have to ensure that the instance methods of the parent class as well as those in the child class are in ISAONLY.
+Classes that inherit from other classes will have @($ChildClass.instanceMethods, $SomeClass.ISAONLY)
+You simply insert the parent class's ISAONLY into the child class's ISAONLY.
+
+Issue 4: We don't want class methods to be accessible through instances of the class
+
+Typically, we don't want class methods to be accessible from the instances of a class. Say your class implements a method $SomeClass.someMethod(). You don't want instances of your class to access this method through $myInstance.someMethod().
+I solved this issue by adding NOISA, an array of properties that should never be searched for with the ISA inheritance system.
+In other words, if an object has a property in its NOISA array, the only way property of that name could be fetched is if this object has its own property of that name. See issue 5 for more information.
+
+Issue 5: We don't want to need all class methods of a class in the NOISA of every single instance of the class
+
+1) this would make a huge memory impact
+2) if a class method was added later, it would not update across all of the instance's NOISAs.]
+
+I solved this issue by allowing arrays inside of NOISA, ISAONLY, ISAIGNORE, etc.
+Instances of classes will have NOISA = @($SomeClass.classMethods), where $SomeClass.classMethods is an array of class methods that should be ignored.
+Using the same array of $SomeClass.classMethods throughout all instances will ensure that an update to $SomeClass.classMethods will update all of the instances NOISA's, simply because arrays are objects, and all of the arrays will be the same exact array object.
+
+Example of implementing a new instance method on a class
+
+New instance methods can be implemented like this:
+
+$SomeClass.someNewInstanceMethod = <your method>
+$SomeClass.instanceMethods.push("someNewInstanceMethod")
+
+Note: this will always change the property of this class, not a parent. See "EOPRJ Assignment Revision" for details on this behavior.

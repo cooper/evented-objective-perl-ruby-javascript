@@ -1,0 +1,177 @@
+EOPRJ Ideas
+
+everything is an object with methods
+except plain objects, in a sense, which are the only pure data type
+
+variables
+different sigils for different things, more like ruby, not for types like perl
+
+data assignment
+pure object: {}, maybe
+objects: var = $( prop: value )
+arrays: var = @(1, 2, 3)
+hashes: var = %( key: value )
+numbers: var = 1
+strings: var = "hi"
+
+hashes
+keys can be anything, not just strings
+$hash{key} is same as $hash.getValue(key: "key").value
+$hash{key} = "value" is same as $hash.setPair(key: "key", value: "value")
+
+methods
+methods are just events with several functions. you can have functions for one method.
+method handlers each have specific names
+default handler name is "default"
+method handlers all have a priority
+negative priorities are allowed
+decimal priorities are allowed
+default priority is 0
+see methods vs. functions below
+
+named arguments
+something.myMethod(firstArgument: 1, second: @(some array))
+
+properties
+properties are javascript-style
+but you can still do obj-c style setters and getters using some built in thing
+
+classes
+there are no true classes
+not really classes ,just objects that implement classes sorta, like perl, in a certain order
+just make constructors that make objects that implement certain roles
+and yeah, the actual class like packages in perl are just object variables in main scope like javascript, but there is a syntax convenience that is similar to perl package thing
+for methods, just use that order to find the first method
+make a way to override the order for certain methods (which are properties), like always use a certain role for a certain method
+
+truth
+if it's defined, it's true. make a method to determine if something is zero or empty
+
+comparison
+one operator should compare objects literally as objects
+another should compare them by calling methods on each object to check their comparison, such as strings
+
+shortcuts like ruby's %w[] and perl's q()
+array of strings: 
+
+assignment of properties
+setting the property of THIS OBJECT: foo.bar = blah
+setting the property in whichever thing owns the property currently: *foo.bar = other
+similar to setting a property in the prototype property of an object in javascript
+
+special variables
+fake variables that are not in main $this - start with @
+@this - the object containing the scope or function, with ISA getting
+in a method, this would be the object the method is in
+a fallback will be the main scope object
+note: you can use *@this to ignore ISA getting and inheritance.
+@return - an object that will be the return value of a method call
+@arguments - same as javascript arguments variable
+
+all functions and methods return objects
+all function return objects so that multiple method handlers can change different things with the objects, if that makes sense
+
+synthesize
+obj-c style synthesizer is entirely unnecessary. if you want this, just don't specify a getter bcuz then it will eventually find the real actual property.
+
+class methods
+class methods are the same as any other methods, except they are in $obj.PRIVATE array, which basically just makes it so anything with the class in its ISA will not take the property.
+uses objective-c + syntax (- is not necessary for other methods)
+
+priorities
+methods are called in order by priority ASCENDING
+it's LINUX-STYLE, and 0 is called BEFORE 1
+this is completely opposite from EventedObject
+
+accessing properties of the specific object only, ignoring ISA and inheritance
+uses * syntax, for example *$object.something always accesses the object's actual 'something', not a parent's.
+*$object.property.haha is same as *($object).property.haha
+to do it for $object.property, do *($object.property).haha
+
+functions vs. methods
+functions are one thing, methods are another
+functions are the basic code-reference type thing
+methods are groups of functions
+when you call something.blah() with parenthesis, it first checks if blah property is a method
+if so, it will call each handler in the order of priorities ascending
+if it's a function and not a method, it will simply call the single function.
+functions and methods are both objects from the $Function and $Method class
+you can check if a property is a function or method with $obj.blah.isa($Method) or $Function, etc.
+
+special properties of objects - each are specific to an object and should typically be accessed with the *$obj.property syntax
+all of these should be set zeroed on all objects initially.
+ISA - an array of ordered objects to search for properties in, similar to javascript prototypes and perl's ISA
+NOISA - an array of property names that are ignored by the ISA system
+ISAIGNORE - an array of objects that should be ignored when doing ISA property searches. this is useful because you typically do not want instances of your class to implement the properties of $Class
+I haven't decided if I'm going to use this yet. I don't know if inherited ISAs are going to be searched yet.
+ISAONLY - an array of property names that can only be accessed through ISA, and are not accessible directly unless the *$obj.property syntax is used.
+useful for classes where you do not want instance methods to be accessible through the class itself
+GETTERS - a hash of property_name(string):code(function) for ISA property getter functions
+SETTERS - a hash of property_name(string):code(function) for ISA property setter functions
+
+functions as arguments 
+$object.method(argumentName: func ($var: Number) {
+})
+
+example using package syntax OUTDATED
+----------------------------------
+
+# this example class lies about its age and subtracts 30 from its actual value.
+
+package MyClass 1.0
+	private new, myPrivateProperty, myOtherPrivateProperty # not used when searching ISA for properties
+	getter age -> getAge
+	setter age -> setAge
+
+func (200) new($initialAge: number)
+	# here, $this object is $MyClass
+	$obj = $core.createObject().object
+	$obj.ISA = @('MyClass', 'SomeBaseClass', 'OtherBase')
+	$obj.age = $initialAge
+	$return.object = $obj
+-
+
+func (200) setAge($value: number)
+	# here, $this object is the $obj
+	$this.age = $value
+-
+
+func (200) getAge()
+	$return.result = $this.age
+-
+
+same thing in full syntax
+---------------------------
+
+$MyClass = $core.createObject()
+
+$MyClass.new = func($initialAge: number)
+	# here, $this object is $MyClass
+	$obj = $core.createObject().object
+	$obj.ISA = @('MyClass', 'SomeBaseClass', 'OtherBase')
+	$obj.age = $initialAge
+	$return.object = $obj
+-
+
+$MyClass.setAge (200) -> func($value: number)
+	# here, $this object is the $obj
+	@this.age = $value
+-
+
+$MyClass.getAge (200) -> func()
+	@return.result = $this.age
+-
+
+$MyClass.VERSION = 1.0
+$MyClass.ISA          = @('Class')
+$MyClass.PRIVATE  = @('new', 'myPrivateProperty', 'myOtherPrivateProperty')
+$MyClass.PUBLIC    = @('setAge', 'getAge')
+$MyClass.GETTERS = %(age: $MyClass.getAge)
+$MyClass.SETTERS = %(age: $MyClass.setAge)
+
+
+creating an object from any of these
+-----------------------------------------
+
+$instance = $MyClass.new(initialAge: 49).object
+

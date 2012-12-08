@@ -1,0 +1,33 @@
+EOPRJ ISA, NOISA, ISAONLY Revision
+
+This file describes the changes made to the ISA-related properties of all objects in EOPRJ made on December 5, 2012.
+Before this revision, we had a major issue with ISA. Because every object has an ISA array and because arrays are objects, every object has an infinite loop objects.
+
+Issue 1: ISA inheritance arrays cause an infinite loop in the creation of objects.
+
+Every object in EOPRJ has several array properties that inform the ISA system how to behave. Because arrays are also objects, this creates an infinite number of objects. The ISA property of one object has its own ISA property and so on… This causes Perl to enter deep recursion of object-creating and property-fetching subroutines.
+To solve this issue, I decided that not all objects need their own specific objects for these properties.
+Instead, all objects will be created with the exact same ISA array object. Each class will implement a defaultISA property, which should be an array of objects used as the ISA of all children of the class. Properties defaultNOISA, defaultISAIGNORE, defaultGETTERS, and defaultSETTERS are available as well and function the same way.
+
+Issue 2: Adding things to one object's ISA properties will affect all other objects that use the same ISA object
+
+Yes, that is correct. To avoid this, I have created several instance methods on the Object class that provide an interface to modify ISA values.
+For example, there will be a method to add values to an ISA array instead of pushing directly to it. ISA variables should no longer be accessed directly.
+Such a method will simply check if the object's ISA is equal to that of the parent class's defaultISA property. If it is, it will create a new array object to replace the shared ISA. Then, it will add the shared ISA into the new ISA, so all of the objects in the initial ISA will still be shared.
+
+New methods for EOPRJ::Object in Perl:
+
+isa_add_object: adds an object to an object's ISA, creating a new ISA array if necessary.
+isaignore_add_object: adds an object to object's ISAIGNORE, creating a new ISAIGNORE array if necessary.
+noisa_add_property: adds a property name to an object's NOISA, creating a new NOISA array if necessary.
+isaonly_add_property: adds a property name to an object's ISAONLY, creating a new ISAONLY array if necessary.
+
+New methods for Object in EOPRJ:
+
+
+Issue 3: How how can we tell if an ISA array is a default initial one?
+
+Originally, my plan was to simply check if the value of the first index in an object's ISA is equal to the defaultISA property of that value. However, this can be rather limiting, forcing you to have only a single "parent class" of each object.
+Thus, I have decided that all default*ISA* arrays must have their 'defaultClassProperty' set to a true value.
+This allows us to ensure that we must create a new *ISA* array including the default array as one of its elements.
+

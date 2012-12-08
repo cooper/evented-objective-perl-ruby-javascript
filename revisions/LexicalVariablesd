@@ -1,0 +1,91 @@
+EOPRJ Lexical Variable Revision
+
+This file describes the changes made to the lexical variable system on December 3, 2012.
+
+Issue 1: I want a JavaScript-style "this" object for the main context.
+
+I took the idea of JavaScript's main context "this" object to the next level.
+
+In EOPRJ, variables are simply properties. Each scope, such as a function, statement, context, etc. has its own object associated with it. Unlike JavaScript, this is actually accessible (through @scope). This object contains all of the properties that are known as variables. Scopes ISA include the containing scope's object, so if a variable is not available in a scope, the ISA system will search the parent scope. The magic of lexical and local variables is nothing magical at all. It's the same behavior found in all EOPRJ objects, thanks to the power of the ISA inheritance system.
+
+Issue 2: If a scope is within a function, special function variables like @return will not work from within it.
+
+In attempt to make this a more visual example, consider a scenario where you have an if block within a function block.
+Because if statements are scopes, they have their own scope objects. Thus, special variables like @return are also specific to the if block. What if you wanted to set a return variable in the outer function?
+
+I solved this issue by $SPECIAL (AKA @scope.SPECIAL) inherit from the containing scope's SPECIAL property.
+
+Consider this:
+
+function do
+	@return.something = "hello!"
+	if (@return.something) do
+		# @return.something is still set here.
+		$innerVariable = "this variable was defined within the if block"
+		@return.somethingElse = "yes, return.something was set"
+	end
+	# out here, @return.something is set.
+	# out here, @return.somethingElse is set.
+	# out here, $innerVariable is inaccessible.
+end
+
+Issue 2: With the new mutli-handler method syntax, variables defined in 1 handler are not accessible from another.
+
+Theoretically, none of the variables in one method handler are accessible from another.
+
+False! I solved this issue by using the same scope object for all of the handlers in a single method block.
+
+Method handlers in the same method block are all in the same scope. Method blocks are scopes. Method handlers are not. Thus, all of the variables in one handler are the same in the others of the same method block. This includes special variables like @return. You can safely set return values in every method handler of a method block without having to worry about anything. It's as simple as that.
+
+Here is an example:
+
+method myMethod($variable: Type) do
+
+	# handler at priority 0
+	[0: firstHandler]
+	# $variable argument is set here
+	$variable2 = "hey there!"
+
+	# handler at priority 1
+	[1: secondHandler]
+	# $variable argument is also set here
+	# $variable2, set in firstHandler, is as well
+	$variable3 = "oh, hi!"
+	@return.someReturnValue = "I am returning your leaf blower"
+
+	[2: thirdHandler]
+	# $variable argument is set here
+	# $variable2, set in firstHandler, is as well
+	# $variable3, set in secondHandler, is as well
+	# @return.someReturnValue, set in secondHandler, is as well
+	# You get the point.
+
+end
+
+Now let's make things tricky.
+
+method myMethod($variable: Type) do
+
+	[2: thirdHandler]
+	# $variable argument is set here
+	# $variable2, set in firstHandler, is as well
+	# $variable3, set in secondHandler, is as well
+	# @return.someReturnValue, set in secondHandler, is as well
+	# You get the point.
+
+	# handler at priority 0
+	[0: firstHandler]
+	# $variable argument is set here
+	$variable2 = "hey there!"
+
+	# handler at priority 1
+	[1: secondHandler]
+	# $variable argument is also set here
+	# $variable2, set in firstHandler, is as well
+	$variable3 = "oh, hi!"
+	@return.someReturnValue = "I am returning your leaf blower"
+
+
+end
+
+Confused? Don't be. Handlers are always called in order of ascending priority.

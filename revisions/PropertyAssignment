@@ -1,0 +1,14 @@
+EOPRJ Property Assignment Revision
+
+I never really thought about this until now. The way properties are assigned has never been questioned up until this point.
+
+Issue 1: What should $object.property = $value assign?
+
+Say your object inherits from another object that already have the 'property' property. So fetching it with $object.property works, of course, but should assigning it take ISA into account as well? After much arguing with myself, I have decided: assignment will always write to the property of the object itself, regardless of ISA inheritance.
+
+Issue 2: What if I wanted to assign to the existing property of the parent object?
+
+Recall that guaranteed fetching of local properties can be achieved with *$object.property.
+I have created a similar syntax adjustment that will allow you to change the value of a parent property that is inherited by a child object. For example, $child is an object with $parent in its ISA. $parent has a property 'property'. $child.property accesses it, but $child.property = "hello" does not modify it. It modifies $child's actual property 'property'. You can modify $parent's 'property' property indirectly through the use of the new syntax:
+^$child.property = "hello", which will change $parent.property to "hello".
+The new carat sigil is used to designate this desired behavior.

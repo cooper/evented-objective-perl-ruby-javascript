@@ -1,0 +1,49 @@
+EOPRJ Block Syntax Revision
+
+This file describes the changes made to the block and block statement syntax made on December 3, 2012.
+
+You may also want to see "EOPRJ Lexical Variable Revision," which explains how scopes function in EOPRJ. Most (if not all) blocks are also scopes; as a result, each has its own "scope object." Please see the file that describes this functionality for more information regarding scopes and scope objects.
+
+Issue 1: Functions and methods are ugly, newlines are tokens, and it's impossible to use blocks as arguments.
+
+Before this revision, the block-starting token was a newline. The block-terminating token was a dash (-) on a line by itself.
+
+I was trying to think of something that looks cleaner than Ruby's do…end and nicer than Perl's curly brackets. At the same time, I didnt want EOPRJ to be an indention nazi like Python. Thus, the newline…dash syntax was born.
+
+I't seemed like a decent idea at the time, up until I realized that this syntax would not look quite right when a block such as a function was used as an argument to a function or method. From then on, I decided that this syntax was rather ugly anyway.
+
+To solve this issue, I implemented C-style curly bracket blocks.
+
+However, I know that some find these brackets rather ugly. Ruby and Python folks will not appreciate them.
+I had to come up with another solution aside from the curly bracket solution.
+
+To solve this issue, I implemented Ruby-style do…end blocks.
+
+So, after hours of debating, I decided to allow both syntaxes. Personally, I like the do…end syntax for things like method blocks, but I believe that the curly bracket syntax looks nicer when a block is used as an argument. For example, consider the following:
+
+method myMethod($argument: Type) do
+	$object.method(function {
+		…
+		…
+	})
+end
+
+Now compare it to this:
+
+method myMethod($argument: Type) {
+	$object.method(function do
+		…
+		…
+	end)
+}
+
+I personally prefer the first, but that's just my opinion. You can do whatever you want. I won't judge.
+
+Of course, newlines are never required. You could write that entire method block in any of the following ways:
+
+method myMethod($argument: Type) { $object.method(function { …; … }) }
+method myMethod($argument: Type) do $object.Method(do …; … end) end
+method myMethod($argument: Type) {  $object.Method(do …; … end) }
+method myMethod($argument: Type)  { $object.method(function { …; … }) }
+
+…but please, please, don't, as that is quite hideous.

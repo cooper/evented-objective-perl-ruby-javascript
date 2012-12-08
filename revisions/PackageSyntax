@@ -1,0 +1,84 @@
+EOPRJ Package Syntax Revision
+
+This file describes the changes made to the package convenience syntax on December 3, 2012.
+
+Issue 1: Several method handler blocks for the same method are ugly and tedious
+
+Before this revision, the package syntax supplied a way to create method handlers. However, it can be rather tedious to have 15 method blocks if you want to separate your handlers.
+
+To solve this issue, I have created a new syntax that allows you to have multiple handlers within a single method block. The new syntax looks like this, where the capitalized represent variable barewords:
+
+method myMethod($variable: Type) {
+
+	[HANDLER_IDENTIFIER: HANDLER_NAME]
+	someCode()
+	…
+
+	[OTHER_HANDLE_IDENTIFIER: OTHER_HANDLER_NAME]
+	someOtherCode()
+	…
+
+}
+
+For example, a myMethod method that has two handlers, one named myHandler at priority 0 and one named mySecondHandler at priority 1 might look like this:
+
+method myMethod($variable: Type) {
+
+	[0: myHandler]
+	doSomething()
+
+	[1: mySecondHandler]
+	doSomethingElse()
+
+}
+
+The spacing separating blank lines are unnecessary but are recommended for cleanliness and readability.
+
+Issue 2: With the new method handler syntax, a single argument list must be used for all the handlers in a method block.
+
+Who cares? How is this an issue?
+
+The argument list simply ensures that the arguments are present and of the correct type. Having a single argument list for all of the handlers in a method block is not an issue at all.
+
+Simply include all of the arguments required for all of the method handlers in the block, and the interpreter will ensure that each of the types are correct before calling any of the handlers.
+
+Typically, if one handler's arguments are not satisfied, you don't want to call the other handlers anyway.
+
+Issue 3: Parentheses are pointless when there are no arguments
+
+This revision allows you to omit the argument list completely if the method handlers take no arguments, including the parentheses. For example,
+
+method myMethod() {
+}
+
+can now more easily be written as
+
+method myMethod {
+}
+
+Issue 4: The plus sign for class methods is hideous when placed in front of a left curly bracket or 'do'
+
+After revising the syntax of blocks and statements, I have decided that the plus sign would be better off in the front of the method block. Simply move the plus symbol to the far left. You may want to see "EOPRJ Block Syntax Revision" for more information on block syntax.
+
+The former
+
+method myMethod($variable: Type) +
+-
+
+is now written as
+
++ method myMethod($variable: Type) {
+}
+
+with the curly bracket syntax
+
+or
+
++ method myMethod($variable: Type) do
+end
+
+with the do…end syntax.
+
+Issue 5: Variable and special variable consistency among method handlers in the same method block
+
+This issue is discussed and solved in Issue 2 of "EOPRJ Lexical Variable Revision."

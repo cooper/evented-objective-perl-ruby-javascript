@@ -1,0 +1,20 @@
+EOPRJ Sigil Revision
+
+This file describes the changes made to EOPRJ sigil syntax on December 3, 2012.
+
+Actual variable-fetching sigils
+
+$ - gets a property from the current scope's object.
+@ - gets a property from $SPECIAL object. Example: @return is $SPECIAL.return, the 'return' property of the scope object's 'SPECIAL' property.
+
+Accessing the scope's object.
+
+@scope accesses the actual object of the scope. 
+As a result, since @ variables are from $SPECIAL, $SPECIAL.scope.SPECIAL.scope.SPECIAL……. never ends.
+
+Sigils used for referencing, etc.
+
+These are placed in front of one of the above sigils to access variables differently than the default behavior.
+
+* - accesses the property of this very object, ignoring all ISA inheritance.
+^ - accesses the actual physical location of an object. assigning to ^$var will change the value of any other variables that contain this same object because changing the value of the physical location literally overwrites the variable rather than reassigning it.

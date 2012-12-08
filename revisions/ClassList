@@ -1,0 +1,74 @@
+EOPRJ Classes
+
+Revision: I want to use [] rather than {} and make a function to set properties with nonstandard names.
+
+Any objects can implement any of these methods for syntax conveniences
+setPair($key: Object, $value: Object)
+can be used for convenience of setting data associated with an object.
+convenience for: $object{$key} = $value
+where $key is one of the following:
+an object or a variable containing an object
+example: a number, 1
+example: a string, "hello"
+a bareword which will be interpreted as a string
+example: hello - $object{hello} = "hi" is same as $object{"hello"} = "hi"
+and $value is any value of any type
+in arrays
+$key is an array index (type Number)
+$value is an array element (any type)
+example of setting: $array{4} = "hello!"
+in hashes
+$key is a hash key (any type)
+$value is a hash value (any type)
+example of setting: $hash{key} = "hello", $hash{45} = 18
+getValue($key: String)
+can be used for convenience of fetching data from an object.
+convenience for: $object{$key}
+where $key is one of the following:
+an object or a variable containing an object
+example: a number, 1
+example: a string, "hello"
+a bareword which will be interpreted as a string
+example: hello - $object{hello} is same as $object{"hello"}
+in arrays
+$key is an array index (type Number)
+example of getting: $array{0}
+in hashes
+$key is a hash key (any type)
+example of getting: $hash{key}, $hash{"key"}, $hash{45}
+returns
+value: the value fetched
+
+Object
+implements the base class of mostly all objects
+class methods
+new()
+creates a new object of type $Object with ISA, NOISA, etc. set and zeroed
+returns
+object: the newly created object
+instance methods
+getSuper()
+getter for SUPER property
+returns
+result: the first value of ISA property
+setSuper()
+setter for SUPER property
+does nothing, as SUPER is not settable
+
+
+Hash
+implements hashes, just like perl
+class methods
+new()
+creates a new empty hash.
+returns
+hash: the newly created hash
+syntax instance methods
+setPair($key: Object, $value: Object)
+sets a key:value pair
+getValue($key: String)
+gets the value associated with the key
+
+idea: array method that flattens arrays out into a single array
+array.smash()
+ex: turns @(@("hi", "there"), "how are you") into @("hi", "there", "how are you")
